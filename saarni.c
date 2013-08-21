@@ -48,7 +48,7 @@ void set_c(png_byte *ptr, int on, color C) {
 
 void set_s(png_byte *ptr, int on, color C) {
 	int x, y;
-	for(y = 0; y < SCALE; y++) {
+ 	for(y = 0; y < SCALE; y++) {
 		for(x = 0; x < SCALE; x++) {
 			set_c(&ptr[(x+y*8*SCALE)*3], on, C);
 		}
@@ -58,10 +58,14 @@ void set_s(png_byte *ptr, int on, color C) {
 void create_png(char* input) {
 	data A[16];
 	char in[17];
-	char pngname[32];
+	char hex[33];
+	char pngname[64];
 	int i, m;
 	long color_long;
 	color C;
+
+	char hexdict[17];
+	hexdict[0] = 0;
 
 	png_image image;
 	png_bytep buffer;
@@ -80,15 +84,16 @@ void create_png(char* input) {
 	/* end png */
 
 	in[0] = 0;
+	hex[0] = 0;
 	pngname[0] = 0;
 	strcat(in, input);
+	strcat(hexdict, "0123456789ABCDEF");
+	hexdict[16] = 0;
 
-	/*
-		good ones:
-		- S5Xy7hlaKekcmizy
-		- 2zmNluLcoHMeYxNU
-		- pr81N4i5huxmt8qd
-	*/
+	for(i = 0; i < 16; i++) {
+		sprintf(hex+2*i, "%c%c", hexdict[in[i]&0xf], hexdict[in[i]>>4&0xf]);
+	}
+	hex[32] = 0;
 
 	color_long = crc((unsigned char*)in, 16);
 
@@ -102,7 +107,7 @@ void create_png(char* input) {
 
 	}
 
-	printf("%s\n", in);
+	printf("%s\n", hex);
 
 	for(i = 0; i < 8; i++) {
 #if TEXT_OUT == 1
@@ -136,7 +141,7 @@ void create_png(char* input) {
 		);
 #endif
 
-	sprintf(pngname, "png/%s.png", in);
+	sprintf(pngname, "png/%s.png", hex);
 
 	png_image_write_to_file(&image, pngname, 0,
                buffer, 0, NULL);
@@ -144,14 +149,11 @@ void create_png(char* input) {
 }
 
 void create_hash(char* buffer) {
-	const char* dict = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	const int   dict_length = 62;
-	unsigned int i, r;
+	unsigned int i;
 
 	buffer[0] = 0;
 	for(i = 0; i < 16; i++) {
-		r = rand() % dict_length;
-		buffer[i] = dict[r];
+		buffer[i] = rand() % 255;
 	}
 	buffer[16] = 0;
 }

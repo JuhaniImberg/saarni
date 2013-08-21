@@ -1,5 +1,5 @@
 TARGET = saarni
-LIBS = -lm -levent
+LIBS = -lm -lpng
 CC = gcc
 CFLAGS = -Wall -O2 --std=gnu99
 

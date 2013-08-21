@@ -1,5 +1,11 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <string.h>
+#include <png.h>
+#include <zlib.h>
+#include <sys/stat.h>
+
 #include "saarni.h"
 
 #define CRC24_INIT 0xb704ceL
@@ -21,22 +27,67 @@ long crc(unsigned char *octets, size_t len) {
 	return crc & 0xffffffL;
 }
 
-int main(int argc, const char* argv[]) {
+void set_c(png_byte *ptr, int on, color C) {
 
+	static color def;
+	def.r = 238;
+	def.g = 238;
+	def.b = 238;
+
+
+	if(!on) {
+		ptr[0] = C.r;
+		ptr[1] = C.g;
+		ptr[2] = C.b;
+	}else{
+		ptr[0] = def.r;
+		ptr[1] = def.g;
+		ptr[2] = def.b;
+	}
+}
+
+void set_s(png_byte *ptr, int on, color C) {
+	int x, y;
+	for(y = 0; y < SCALE; y++) {
+		for(x = 0; x < SCALE; x++) {
+			set_c(&ptr[(x+y*8*SCALE)*3], on, C);
+		}
+	}
+}
+
+void create_png(char* input) {
 	data A[16];
 	char in[17];
-	int i;
+	char pngname[32];
+	int i, m;
 	long color_long;
 	color C;
 
+	png_image image;
+	png_bytep buffer;
+
+	memset(&image, 0, (sizeof image));
+	image.version = PNG_IMAGE_VERSION;
+	image.format = PNG_FORMAT_RGB;
+	image.opaque = NULL;
+	image.width = 8*SCALE;
+	image.height = 8*SCALE;
+	image.flags = 0;
+	image.colormap_entries = 0;
+
+	buffer = malloc(PNG_IMAGE_SIZE(image));
+
+	/* end png */
+
 	in[0] = 0;
-	strcat(in, "pr81N4i5huxmt8qd");
+	pngname[0] = 0;
+	strcat(in, input);
 
 	/*
 		good ones:
 		- S5Xy7hlaKekcmizy
 		- 2zmNluLcoHMeYxNU
-		- pr81N4i5huxmt8qd pink
+		- pr81N4i5huxmt8qd
 	*/
 
 	color_long = crc((unsigned char*)in, 16);
@@ -51,12 +102,10 @@ int main(int argc, const char* argv[]) {
 
 	}
 
-	/* this works in konsole (rgb color) */
-	printf("%s\033[38;2;%i;%i;%im\n", in, 
-		(unsigned int)C.r, (unsigned int)C.g, (unsigned int)C.b
-		);
+	printf("%s\n", in);
 
 	for(i = 0; i < 8; i++) {
+#if TEXT_OUT == 1
 		printf("%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s\n", 
 			A[i  ].high P, A[i  ].high P,
 			A[i  ].low  P, A[i  ].low  P,
@@ -67,13 +116,52 @@ int main(int argc, const char* argv[]) {
 			A[i  ].low  P, A[i  ].low  P, 
 			A[i  ].high P, A[i  ].high P
 		);
+#endif
+
+		m = i*8*SCALE*SCALE;
+
+		set_s(&(buffer[(m+ 0*SCALE )*3]), A[i  ].high, C);
+		set_s(&(buffer[(m+ 1*SCALE )*3]), A[i  ].low, C);
+		set_s(&(buffer[(m+ 2*SCALE )*3]), A[i+8].high, C);
+		set_s(&(buffer[(m+ 3*SCALE )*3]), A[i+8].low, C);
+		set_s(&(buffer[(m+ 4*SCALE )*3]), A[i+8].low, C);
+		set_s(&(buffer[(m+ 5*SCALE )*3]), A[i+8].high, C);
+		set_s(&(buffer[(m+ 6*SCALE )*3]), A[i  ].low, C);
+		set_s(&(buffer[(m+ 7*SCALE )*3]), A[i  ].high, C);
 	}
 
-	
-	printf("         %s#%x%x%x\n", "\033[0m",
+#if TEXT_OUT == 1
+	printf("         #%x%x%x\n",
 		(unsigned int)C.r, (unsigned int)C.g, (unsigned int)C.b
 		);
+#endif
 
+	sprintf(pngname, "png/%s.png", in);
+
+	png_image_write_to_file(&image, pngname, 0,
+               buffer, 0, NULL);
+
+}
+
+void create_hash(char* buffer) {
+	const char* dict = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	const int   dict_length = 62;
+	unsigned int i, r;
+
+	buffer[0] = 0;
+	for(i = 0; i < 16; i++) {
+		r = rand() % dict_length;
+		buffer[i] = dict[r];
+	}
+	buffer[16] = 0;
+}
+
+int main(int argc, const char* argv[]) {
+	char buffer[17];
+	buffer[0] = 0;
+	srand (time(NULL));
+	create_hash(buffer);
+	mkdir("png", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	create_png(buffer);
 	return 0;
-
 }

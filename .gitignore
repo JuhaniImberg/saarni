@@ -1,2 +1,4 @@
 *.o
 saarni
+*.png
+png/

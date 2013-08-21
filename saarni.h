@@ -21,5 +21,6 @@ void set_c(png_byte *ptr, int on, color C);
 void set_s(png_byte *ptr, int on, color C);
 void create_png(char* input);
 void create_hash(char* buffer);
+void create_antihex(char* buffer, const char* hex);
 
 #endif

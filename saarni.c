@@ -34,7 +34,6 @@ void set_c(png_byte *ptr, int on, color C) {
 	def.g = 238;
 	def.b = 238;
 
-
 	if(!on) {
 		ptr[0] = C.r;
 		ptr[1] = C.g;
@@ -146,6 +145,8 @@ void create_png(char* input) {
 	png_image_write_to_file(&image, pngname, 0,
                buffer, 0, NULL);
 
+	free(buffer);
+
 }
 
 void create_hash(char* buffer) {
@@ -158,12 +159,75 @@ void create_hash(char* buffer) {
 	buffer[16] = 0;
 }
 
+char hex_to_char(unsigned char c)
+{
+  if (c >= '0' && c <= '9') return c - '0';
+  if (c >= 'A' && c <= 'F') return 10 + c - 'A';
+  if (c >= 'a' && c <= 'f') return 10 + c - 'a';
+  return -1;
+}
+
+void create_antihex(char* buffer, const char* hex) {
+	int i;
+	printf("%s\n", hex);
+	for(i = 0; i < 16; i++) {
+		buffer[i] = hex_to_char(hex[i*2]) | (hex_to_char(hex[i*2+1])<<4);
+	}
+}
+
+void help() {
+	printf("usage: saarni [-h] [-s hex_string]\n"
+		   "              [-n number_of_random]\n");
+
+}
+
 int main(int argc, const char* argv[]) {
 	char buffer[17];
+	int num_of_rand, i;
 	buffer[0] = 0;
 	srand (time(NULL));
-	create_hash(buffer);
 	mkdir("png", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-	create_png(buffer);
+
+	if(argc>1) {
+
+		if(argv[1][0] == '-') {
+			switch(argv[1][1]) {
+				case 'h':
+					help();
+					return 0;
+					break;
+				case 's':
+					if(argc==3) {
+						create_antihex(buffer, argv[2]);
+						create_png(buffer);
+					}else{
+						printf("ei\n");
+					}
+					break;
+				case 'n':
+					num_of_rand = atoi(argv[2]);
+					for(i = 0; i < num_of_rand; i++) {
+						buffer[0] = 0;
+						create_hash(buffer);
+						create_png(buffer);
+					}
+					break;
+				default:
+					help();
+					return 0;
+					break;
+			}
+		}else{
+			help();
+			return 0;
+		}
+
+	}else{
+
+		create_hash(buffer);
+		create_png(buffer);
+
+	}
+
 	return 0;
 }

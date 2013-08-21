@@ -3,8 +3,10 @@ saarni
 
 A visual identification generator.
 
-todo
-----
+requires
+--------
 
--   png generation
--   thought
+libpng 1.6.x
+zlib
+linux
+gcc

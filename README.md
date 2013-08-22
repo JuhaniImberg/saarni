@@ -1,7 +1,7 @@
 saarni
 ======
 
-A visual identification generator.
+A visual identification generator. Generates a .png for each hash.
 
 requires
 --------
@@ -31,7 +31,7 @@ usage
 		echo "Hello, world!" | md5sum | ./saarni -s -
 
 		returns:
-		
+
 			F0EF7081E1539AC00EF5B761B4FB01B3
 			██    ████    ██
 			    ██    ██    

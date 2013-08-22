@@ -191,55 +191,41 @@ int main(int argc, const char* argv[]) {
 	srand (time(NULL));
 	mkdir("png", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
-	if(argc>1) {
+	if(argc>1 && argv[1][0] == '-') {
 
-		if(argv[1][0] == '-') {
-			switch(argv[1][1]) {
-				case 'h':
-					help();
-					return 0;
-					break;
-				case 's':
-					if(argc==3) {
-						if(argv[2][0]== '-') {
-							while((c=getchar())!= EOF) {
-								strcat(stdin_buffer, &c);
-							}
-							stdin_buffer[32] = 0;
-							create_antihex(buffer, stdin_buffer);
-							create_png(buffer);
-						}else{
-							create_antihex(buffer, argv[2]);
-							create_png(buffer);
+		switch(argv[1][1]) {
+			case 's':
+				if(argc==3) {
+					if(argv[2][0]== '-') {
+						while((c=getchar())!= EOF) {
+							strcat(stdin_buffer, &c);
 						}
+						stdin_buffer[32] = 0;
+						create_antihex(buffer, stdin_buffer);
+						create_png(buffer);
 					}else{
-						printf("ei\n");
+						create_antihex(buffer, argv[2]);
+						create_png(buffer);
 					}
-					break;
-				case 'n':
+					return 0;
+				}
+				printf("Missing string or - as argument 2\n");
+				return 0;
+			case 'n':
+				if(argc==3) {
 					num_of_rand = atoi(argv[2]);
 					for(i = 0; i < num_of_rand; i++) {
 						buffer[0] = 0;
 						create_hash(buffer);
 						create_png(buffer);
 					}
-					break;
-				default:
-					help();
 					return 0;
-					break;
-			}
-		}else{
-			help();
-			return 0;
+				}
+				printf("Missing number as argument 2\n");
+				return 0;
 		}
-
-	}else{
-
-		create_hash(buffer);
-		create_png(buffer);
-
 	}
 
+	help();
 	return 0;
 }

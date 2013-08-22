@@ -183,8 +183,11 @@ void help() {
 
 int main(int argc, const char* argv[]) {
 	char buffer[17];
+	char stdin_buffer[33];
+	char c;
 	int num_of_rand, i;
 	buffer[0] = 0;
+	stdin_buffer[0] = 0;
 	srand (time(NULL));
 	mkdir("png", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
@@ -198,8 +201,17 @@ int main(int argc, const char* argv[]) {
 					break;
 				case 's':
 					if(argc==3) {
-						create_antihex(buffer, argv[2]);
-						create_png(buffer);
+						if(argv[2][0]== '-') {
+							while((c=getchar())!= EOF) {
+								strcat(stdin_buffer, &c);
+							}
+							stdin_buffer[32] = 0;
+							create_antihex(buffer, stdin_buffer);
+							create_png(buffer);
+						}else{
+							create_antihex(buffer, argv[2]);
+							create_png(buffer);
+						}
 					}else{
 						printf("ei\n");
 					}

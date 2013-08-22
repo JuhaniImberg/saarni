@@ -169,7 +169,6 @@ char hex_to_char(unsigned char c)
 
 void create_antihex(char* buffer, const char* hex) {
 	int i;
-	printf("%s\n", hex);
 	for(i = 0; i < 16; i++) {
 		buffer[i] = hex_to_char(hex[i*2]) | (hex_to_char(hex[i*2+1])<<4);
 	}
